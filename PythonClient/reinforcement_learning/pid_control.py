@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 # boolean representing whether to display graphs
 GRAPH = False
 # data set of riding normally through neighborhood
-data_path = "C:/Users/Cleah/Documents/AirSim/2023-05-09-22-09-34/airsim_rec.txt"
+data_path = "C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49/airsim_rec.txt"
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
@@ -36,16 +36,33 @@ for i in range(0, 100000):
     current_x_pos = car_state.kinematics_estimated.position.x_val
     curr_orientation = car_state.kinematics_estimated.orientation
     
-    pos_diff = np.array([current_x_pos - row["POS_X"].item(), current_y_pos - row["POS_Y"]])
-    row = df.iloc[(df['POS_Y']-current_x_pos).abs().argsort()[:1]]
-    print(f"Row! -- {row}")
+    error_dist = []
+    # compute distance fromm current x,y and all x,y
+    pos_curr = np.array([current_x_pos, current_y_pos])
+    
+    # computes array of error distances
+    for index, row in df.iterrows():
+        pos_diff = np.array([row["POS_X"], row["POS_Y"]]) - pos_curr
+        error_dist.append(np.linalg.norm(pos_diff))
+        print(f"Error Appended {np.linalg.norm(pos_diff)}")
+    
+    index = 0
+    smallest_value = error_dist[0]
+    for idx, value in enumerate(error_dist):
+        if value < smallest_value:
+            print(f"in if statement with {idx} and {value}")
+            index = idx
+            smallest_value = value
+
+    row = df.iloc[index]
+
+    # row = df.iloc[(df['POS_Y']-current_y_pos).abs().argsort()[:1]]
+    print(f"Row! {index}")
 
 
     # Numpy arrays of current x-y position and desired x-y position
     pos_curr = np.array([current_x_pos, current_y_pos])
-    pos_data = np.array([row["POS_X"].item(), row["POS_Y"].item()])
-
-    
+    pos_data = np.array([row["POS_X"].item(), row["POS_Y"].item()])    
 
     # current_x_quat = car_state.kinematics_estimated.quaterinion.x_val
     r = R.from_quat([row["Q_X"].item(), row["Q_Y"].item(), row["Q_Z"].item(), row["Q_W"].item()])
@@ -63,7 +80,7 @@ for i in range(0, 100000):
                                 [math.sin(yaw), math.cos(yaw)]])
     # first element corresponds to along track error and second to cross track error
     error_ref_frame = rotation_matrix.T.dot(pos_error)
-
+    print (f"Error_Ref_Frame ==> {error_ref_frame}")
     # # along track error
     # e_at = (
     #    math.sin(yaw) * (current_x_pos - row["POS_X"]) + 
@@ -83,7 +100,7 @@ for i in range(0, 100000):
 
 
     # final calculation
-    u = -1 * (k_p * error_ref_frame[1][0] + k_d * car_state.speed * math.sin(theta_e))
+    u = -1 * (k_p * error_ref_frame[1] + k_d * car_state.speed * math.sin(theta_e))
     steering_angles.append(u)
     yaw_list.append(yaw)
     posx_ref.append(row["POS_X"])
@@ -103,7 +120,7 @@ for i in range(0, 100000):
 
 
     # set car controls"
-    car_controls.throttle = error_ref_frame[0][0] + 0.5
+    car_controls.throttle = 0.5
     car_controls.steering = u
     # car_controls.speed = row["Speed"].item()
     client.setCarControls(car_controls)
