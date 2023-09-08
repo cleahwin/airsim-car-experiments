@@ -12,20 +12,35 @@ from model import Net
 from torch.utils.tensorboard import SummaryWriter
 
 # Hyperparameters
-batch_size = 8
-epochs = 20
-learning_rate = 0.01
+batch_size = 4
+epochs = 60
+learning_rate = 0.001
 momentum = 0.9
 
 model_path = "train2.pth"
 
 PATH = r"C:\Users\Cleah\Documents\Projects\University Research\Robot Learning Lab\Simulator\airsim-car-experiments\PythonClient\saved_models"
 writer = SummaryWriter()
-data_list = ["C:/Users/Cleah/Documents/AirSim/2023-05-06-12-08-38", 
-             "C:/Users/Cleah/Documents/AirSim/2023-01-27-18-52-53",
-             "C:/Users/Cleah/Documents/AirSim/2023-05-09-22-09-34",
-             "C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49",
-             "C:/Users/Cleah/Documents/AirSim/2023-07-20-15-11-35"
+data_list = ["C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49",
+             "C:/Users/Cleah/Documents/AirSim/2023-07-20-15-11-35",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-12-43-09",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-38-56",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-46-35",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-58-47",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-18-25-48",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-18-38-10",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-05-10-46-44",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-05-17-52-22",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-05-18-15-04",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-07-11-39-09",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-26-58",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-33-30",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-43-51",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-09-37-12",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-44-53",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-49-02",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-53-42",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-55-47"
             ]
 # Initialize data set and data loader and model CNN
 dataset = NeighborhoodDataset(data_list)
@@ -43,7 +58,7 @@ optimizer = optim.SGD(cnn.parameters(), lr=learning_rate, momentum=momentum)
 
 running_losses_list = []
 for epoch in range(epochs):  # loop over the dataset multiple times
-
+    print(epoch)
     running_loss = 0.0
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -67,7 +82,7 @@ for epoch in range(epochs):  # loop over the dataset multiple times
     
     if i % 2000 == 1999:    # print every 2000 mini-batches
         print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-    print(f"Running Loss {running_loss}")
+    print(f"Running Loss {running_loss / i}")
     running_losses_list.append(running_loss)
     # TODO: Print running_loss after the epoch
 

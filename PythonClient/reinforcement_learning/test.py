@@ -16,11 +16,26 @@ batch_size = 4
 
 model_path = "train2.pth"
 PATH = r"C:\Users\Cleah\Documents\Projects\University Research\Robot Learning Lab\Simulator\airsim-car-experiments\PythonClient\saved_models"
-data_list = ["C:/Users/Cleah/Documents/AirSim/2023-05-06-12-08-38", 
-             "C:/Users/Cleah/Documents/AirSim/2023-01-27-18-52-53",
-             "C:/Users/Cleah/Documents/AirSim/2023-05-09-22-09-34",
-             "C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49",
-             "C:/Users/Cleah/Documents/AirSim/2023-07-20-15-11-35"
+data_list = ["C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49",
+             "C:/Users/Cleah/Documents/AirSim/2023-07-20-15-11-35",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-12-43-09",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-38-56",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-46-35",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-58-47",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-18-25-48",
+             "C:/Users/Cleah/Documents/AirSim/2023-08-31-18-38-10",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-05-10-46-44",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-05-17-52-22",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-05-18-15-04",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-07-11-39-09",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-26-58",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-33-30",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-43-51",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-09-37-12",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-44-53",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-49-02",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-53-42",
+             "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-55-47"
             ]
 writer = SummaryWriter()
 
@@ -61,8 +76,9 @@ for i, data in enumerate(testloader, 0):
     # print(f"Loss {loss}")
 
     running_loss += loss_out.item()
+    print(f"Loss out {loss_out.item()}")
     # print statistics
 
-print(f"Running Loss {running_loss}")
+print(f"Running Loss {running_loss / i}")
 
 print('Finished Testing')
