@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 # boolean representing whether to display graphs
 GRAPH = True
 # data set of riding normally through neighborhood
-data_path = "C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49/airsim_rec.txt"
+data_path = "C:/Users/Cleah/Documents/AirSim/2023-09-07-11-39-09/airsim_rec.txt"
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
@@ -27,8 +27,6 @@ posx_ref = []
 posy_ref = []
 posy_curr = []
 posx_curr = []
-
-
 
 for i in range(0, 1000):
 
