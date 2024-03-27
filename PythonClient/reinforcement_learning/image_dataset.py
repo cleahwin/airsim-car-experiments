@@ -66,7 +66,6 @@ class NeighborhoodDataset(Dataset):
 
         
         img_tensor = img_tensor[:3, :, :]  # (3, 144, 256)
-        print(img_tensor.shape)
 
         return img_tensor, steering_angle
 
@@ -82,19 +81,17 @@ class HallwayDataset(Dataset):
         self.images = torch.from_numpy(np.load(data_path + "split_images\images_2.npy"))
         self.images = torch.permute(self.images, (0, 3, 1, 2))
         self.transform = transform
-        print(f"max={torch.max(self.images[0])}, min={torch.min(self.images[0])}")
+        # print(f"max={torch.max(self.images[0])}, min={torch.min(self.images[0])}")
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, idx):
         image = self.images[idx]        
-        print(image.shape)
         steering_angle = self.steering_angles[idx]
 
         if self.transform:
             # image = (self.transform(image.float())).resize(144, 256)
             image = self.transform(image.float())
-        print(image.shape)
         return image, steering_angle
 

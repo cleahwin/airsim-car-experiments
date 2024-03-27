@@ -11,8 +11,8 @@ def resize_npy_images (file_path: str):
     np_images_resized = np.empty((len(np_images), 144, 256, 3))
     # NOTE: overrides original file path 
     for i in range(len(np_images)):
-        print(f"Shape + {np_images[i].shape} + {np_images[i].transpose(1, 2, 0).shape}")
-        print(np_images[i].shape)
+        # print(f"Shape + {np_images[i].shape} + {np_images[i].transpose(1, 2, 0).shape}")
+        # print(np_images[i].shape)
         np_images_resized[i] = cv2.resize(np_images[i], dsize = (256, 144), interpolation=cv2.INTER_AREA)
 
     np.save(file_path, np_images_resized)

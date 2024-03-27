@@ -13,13 +13,13 @@ from utils_graphs import plot_two_datasets, plot_model_sim_output, plot_loss_cur
 import torchvision.transforms as transforms
 
 # true if training using Neighborhood, false if training using Hallway
-SIMULATOR = True
+SIMULATOR = False
 # true if a model is continued to be trained
 EXISTING_MODEL = True
 
 # Hyperparameters
-batch_size = 3
-epochs = 40
+batch_size = 1
+epochs = 5
 learning_rate = 0.0001
 momentum = 0.9
 
@@ -87,18 +87,39 @@ running_losses_list = []
 for epoch in range(epochs):  # loop over the dataset epoch times
     running_loss = 0.0
     print(f"Epoch {epoch}")
+    elem1, elem2, elem3, elem4 = [], [], [], []
     for i, data in enumerate(dataloader, 0):
+        
         # get the inputs; data is a list of [inputs, labels]
         image, steering_angle = data
         image, steering_angle = image.float(), steering_angle.float()
+        # print(f"Image: {image}")
+        # print (f"#{i}")
+        # print(f"Steering Angle Data = {steering_angle}")
+        # elem1.append(steering_angle[0][0])
+        # elem2.append(steering_angle[0][1])
+        # elem3.append(steering_angle[0][2])
+        # elem4.append(steering_angle[0][3])
         # zero the parameter gradients
         optimizer.zero_grad()
         outputs = cnn(image)
+        # print(f"Steering Angle Model = {outputs}")
         loss_out = loss(outputs, steering_angle)
         loss_out.backward()
         optimizer.step()
         running_loss += loss_out.item()
     
+    # plt.plot(elem1, color='red', label='Element 1')
+    # plt.plot(elem2, color='blue', label='Element 2')
+    # plt.plot(elem3, color='green', label='Element 3')
+    # plt.plot(elem4, color='purple', label='Element 4')
+    # plt.title(f'Comparison of the 4 elements of the steering angle Tensor')
+    # plt.ylabel('Steering Angle')
+    # plt.xlabel('Data Point')
+    # plt.legend(loc="upper right")
+    # plt.show()
+
+
     # if i % 2000 == 1999:    # print every 2000 mini-batches
     #     print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
     print(f"Running Loss {running_loss / dataloader_length}")
@@ -112,4 +133,4 @@ print(running_losses_list)
 #     plot_model_sim_output()
 
 # Plot train losses
-plot_loss_curve(running_losses_list, epochs)
+plot_loss_curve(running_losses_list[1:], epochs)
