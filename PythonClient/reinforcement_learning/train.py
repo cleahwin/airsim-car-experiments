@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import numpy as np
 
 from image_dataset import NeighborhoodDataset, HallwayDataset
 from model import NeighborhoodRealCNN, HallwayCNN
@@ -93,6 +94,7 @@ for epoch in range(epochs):  # loop over the dataset epoch times
         # get the inputs; data is a list of [inputs, labels]
         image, steering_angle = data
         image, steering_angle = image.float(), steering_angle.float()
+        print(f"Norm of steering angle Real = {np.linalg.norm(steering_angle.numpy())}")
         # print(f"Image: {image}")
         # print (f"#{i}")
         # print(f"Steering Angle Data = {steering_angle}")
