@@ -130,26 +130,36 @@ def load_sim_data(
         # Convert the column of steering angle data dataframe to numpy to torch tensor
         steering_angles.append(torch.from_numpy(poses_data[["Steering"]].to_numpy()))
 
-    steering_angles = torch.cat(steering_angles)
-    images = torch.empty(0)
 
+    steering_angles_tensor = torch.cat(steering_angles)
+    steering_angles_tensor = (steering_angles_tensor - steering_angles_tensor.mean()) / steering_angles_tensor.std()
+    print(f"Steering angle tensor shape: {steering_angles_tensor.shape}")
+    images = []
     # Creates list of image tensors
-    for idx in range(len(steering_angles)):
+    for idx in range(len(image_file_names)):
         image_path = image_file_names[idx]
 
         image = Image.open(image_path) 
-        trans = transforms.Compose([transforms.ToTensor()])
+        trans = transforms.Compose(
+            [
+                transforms.ToTensor(),
+            ]
+        )
+        
         img_tensor = trans(image)
+        img_tensor = img_tensor[:3, :, :]    
 
-        img_tensor = img_tensor[:3, :, :]  # (3, 144, 256)
+        transform = (transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
+        img_tensor = transform(img_tensor)
 
-
+        # img_tensor = img_tensor[:3, :, :]  # (3, 144, 256)
         images.append(img_tensor)
+        # print(torch.min(images[0]), torch.max(images[0]))
 
     # Convert list of image tensors to a tensor
-    images_tensor = torch.cat(images)
-
-    return (images_tensor, steering_angles)
+    images_tensor = torch.stack(images, dim=0)
+    # print(f"Images tensor shape data load {images_tensor.shape}")
+    return (images_tensor, steering_angles_tensor)
 
 
 def load_real_data(
@@ -171,21 +181,22 @@ def load_real_data(
     for path in data_path_list:
         steering_angles = torch.from_numpy(np.load(path + "split_ctrls\ctrls_2.npy"))
         steering_angles = (steering_angles - steering_angles.mean()) / steering_angles.std()
-        steering_angles_list.append(steering_angles)
+        steering_angles_tensor = steering_angles[:, 0].unsqueeze(1)
 
         images = torch.from_numpy(np.load(path + "split_images\images_2.npy"))
         images = torch.permute(images, (0, 3, 1, 2))
         
         # Normalize all images in images from this data file
-        transform = (transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
         for idx in range(len(images)):
-            image = images[idx]
-            images[idx] = transform(images.float)
+            mean, std = images[idx].mean([1,2]), images[idx].std([1,2])
+            transform = transforms.Normalize(mean, std)
+            images_list.append(transform(images[idx]))
 
-        images_list.append(images)
 
-
-    return torch.concat(images_list), torch.concat(steering_angles_list)
+    images_tensor = torch.stack(images_list, dim=0)
+    print(images_tensor.shape)
+    print(f"real images: {torch.min(images_tensor[0]), torch.max(images_tensor[0])}")
+    return (images_tensor, steering_angles_tensor)
 
 
 def shuffle_real_sim_data(
@@ -204,33 +215,35 @@ def shuffle_real_sim_data(
         Final combined dataset.
     """
     # Compute length of final data and how much to sample.
-    final_data_len = min(len(real_data[0]), len(sim_data[0]))
-    sim_data_len = sim_ratio * final_data_len
-    real_data_len = final_data_len - sim_data_len
+    final_data_len = min(len(real_data[1]), len(sim_data[1]))
+    print(len(sim_data[1]), len(real_data[1]), final_data_len)
+    sim_data_len = int(sim_ratio * final_data_len)
+    real_data_len = int(final_data_len - sim_data_len)
 
+    #TODO: Get random subsamples
     # Sample real and sim data.
-    sample_real_images = real_data[0][:real_data_len]
-    sample_real_steering_angle = real_data[1][:real_data_len]
+    sample_real_images = (real_data[0])[:real_data_len]
+    sample_real_steering_angle = (real_data[1])[:real_data_len]
 
-    sample_sim_images = sim_data[0][:sim_data_len]
-    sample_sim_steering_angle = sim_data[1][:sim_data_len]
+    sample_sim_images = (sim_data[0])[:sim_data_len]
+    sample_sim_steering_angle = (sim_data[1])[:sim_data_len]
 
     # Combine real and sim data.
+    combined_images = torch.cat((sample_real_images, sample_sim_images), dim=0)
 
-    combined_images = torch.stack((sample_real_images, sample_sim_images), dim=1)
-    combined_steering_angles = torch.stack((sample_real_steering_angle, sample_sim_steering_angle), dim=1)
+    combined_steering_angles = torch.cat((sample_real_steering_angle, sample_sim_steering_angle), dim=0)
 
-    combined_data = torch.cat(combined_images, combined_steering_angles)
+    # combined_data = torch.cat(combined_images, combined_steering_angles)
 
-    shuffle_indices = torch.randperm(combined_data.size(0))
+    # shuffle_indices = torch.randperm(combined_data.size(0))
 
-    # Shuffle the combined tensor using the random indices
-    shuffled_image_sa = combined_data[shuffle_indices]
+    # # Shuffle the combined tensor using the random indices
+    # shuffled_image_sa = combined_data[shuffle_indices]
 
-    # Split the shuffled tensor back into two pairs of tensors
-    shuffled_image_pair, shuffled_steering_angle_pair = torch.split(shuffled_image_sa, len(sample_real_images), dim=0)
+    # # Split the shuffled tensor back into two pairs of tensors
+    # shuffled_image_pair, shuffled_steering_angle_pair = torch.split(shuffled_image_sa, len(sample_real_images), dim=0)
 
-    return (shuffled_image_pair, shuffled_steering_angle_pair)
+    return (combined_images, combined_steering_angles)
 
 
 class ImageSteeringAngleDataset(Dataset):
