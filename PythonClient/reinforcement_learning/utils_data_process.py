@@ -18,5 +18,5 @@ def resize_npy_images (file_path: str):
     np.save(file_path, np_images_resized)
 
 # NOTE: run when you want to resize real data image
-# resize_npy_images("C:\\Users\\Cleah\\Documents\\Projects\\University Research\\Robot Learning Lab\\Simulator\\airsim-car-experiments\\PythonClient\\reinforcement_learning\\balanced_data_split\\split_images\\images_2.npy")
+resize_npy_images("C:\\Users\\Cleah\\Documents\\Projects\\University Research\\Robot Learning Lab\\Simulator\\airsim-car-experiments\\PythonClient\\reinforcement_learning\\balanced_data_split\\split_images\\images_11.npy")
     

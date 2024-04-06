@@ -177,13 +177,15 @@ def load_real_data(
 
     steering_angles_list = []
     images_list = []
+    path = data_path_list[0]
 
-    for path in data_path_list:
-        steering_angles = torch.from_numpy(np.load(path + "split_ctrls\ctrls_2.npy"))
+    for i in range(1, 20):
+        print(i)
+        steering_angles = torch.from_numpy(np.load(path + f"split_ctrls\ctrls_{i}.npy"))
         steering_angles = (steering_angles - steering_angles.mean()) / steering_angles.std()
         steering_angles_tensor = steering_angles[:, 0].unsqueeze(1)
 
-        images = torch.from_numpy(np.load(path + "split_images\images_2.npy"))
+        images = torch.from_numpy(np.load(path + f"split_images\images_{i}.npy"))
         images = torch.permute(images, (0, 3, 1, 2))
         
         # Normalize all images in images from this data file
