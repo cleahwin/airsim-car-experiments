@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 # boolean representing whether to display graphs
-GRAPH = True
+GRAPH = False
 # data set of riding normally through neighborhood
-data_path = "C:/Users/Cleah/Documents/AirSim/2023-09-07-11-39-09/airsim_rec.txt"
+data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-11-16-19-34/airsim_rec.txt"
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
 client.confirmConnection()
 client.enableApiControl(True)
+
 print("API Control enabled: %s" % client.isApiControlEnabled())
 
 
@@ -28,7 +29,7 @@ posy_ref = []
 posy_curr = []
 posx_curr = []
 
-for i in range(0, 1000):
+for i in range(0, 10000000000):
 
     car_controls = airsim.CarControls()
     car_state = client.getCarState()
@@ -56,20 +57,17 @@ for i in range(0, 1000):
     for index, row in df.iterrows():
         pos_diff = np.array([row["POS_X"], row["POS_Y"]]) - pos_curr
         error_dist.append(np.linalg.norm(pos_diff))
-        print(f"Error Appended {np.linalg.norm(pos_diff)}")
     
     index = 0
     smallest_value = error_dist[0]
     for idx, value in enumerate(error_dist):
         if value < smallest_value:
-            print(f"in if statement with {idx} and {value}")
             index = idx
             smallest_value = value
 
     row = df.iloc[index]
 
     # row = df.iloc[(df['POS_Y']-current_y_pos).abs().argsort()[:1]]
-    print(f"Row! {index}")
 
 
     ##################
@@ -96,7 +94,6 @@ for i in range(0, 1000):
                                 [math.sin(yaw), math.cos(yaw)]])
     # first element corresponds to along track error and second to cross track error
     error_ref_frame = rotation_matrix.T.dot(pos_error)
-    print (f"Error_Ref_Frame ==> {error_ref_frame}")
 
     # heading error
     theta_e = yaw_curr - yaw
