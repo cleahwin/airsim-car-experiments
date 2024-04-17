@@ -1,83 +1,90 @@
+# %load_ext autoreload
+# %autoreload 2
+
 import torch
 import os
-from torch.utils.data.dataloader import DataLoader
-from torch.utils.data import random_split
+import importlib
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
+import image_dataset
 
-from image_dataset import NeighborhoodDataset, HallwayDataset
-from model import NeighborhoodRealCNN, HallwayCNN
+importlib.reload(image_dataset)
+
+from image_dataset import ImageSteeringAngleDataset, load_real_data, load_sim_data, shuffle_real_sim_data
+from model import NeighborhoodRealCNN
 from utils_graphs import plot_two_datasets, plot_model_sim_output, plot_loss_curve
 import torchvision.transforms as transforms
+from torch.utils.data import random_split
 
-# true if training using Neighborhood, false if training using Hallway
-SIMULATOR = False
-# true if a model is continued to be trained
-EXISTING_MODEL = True
+ROOT_DIR = "/homes/iws/cleahw/AirSim_Research/airsim-car-experiments/PythonClient/"
 
-# Hyperparameters
-batch_size = 1
-epochs = 5
+# Specify ratio of real:sim. 1 - sim_ratio = real_ratio
+sim_ratio = 0
+data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/"
+data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
+model_dir = f"{ROOT_DIR}saved_models/sim_model.pth"
+
+batch_size = 2
+epochs = 30
 learning_rate = 0.0001
 momentum = 0.9
 
-model_path = "realOnSim.pth"
-transform = (transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
 
-PATH = r"C:\Users\Cleah\Documents\Projects\University Research\Robot Learning Lab\Simulator\airsim-car-experiments\PythonClient\saved_models"
+# Load data. 
 
-if (SIMULATOR):
-    data_list = [
-            "C:/Users/Cleah/Documents/AirSim/2023-07-20-12-44-49",
-            "C:/Users/Cleah/Documents/AirSim/2023-07-20-15-11-35",
-            "C:/Users/Cleah/Documents/AirSim/2023-08-31-12-43-09",
-            "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-38-56",
-            "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-46-35",
-            "C:/Users/Cleah/Documents/AirSim/2023-08-31-17-58-47",
-            "C:/Users/Cleah/Documents/AirSim/2023-08-31-18-25-48",
-            "C:/Users/Cleah/Documents/AirSim/2023-08-31-18-38-10",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-05-10-46-44",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-05-17-52-22",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-05-18-15-04",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-07-11-39-09",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-26-58",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-33-30",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-08-43-51",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-09-37-12",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-44-53",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-49-02",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-53-42",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-08-11-55-47",
-            "C:/Users/Cleah/Documents/AirSim/2023-09-12-10-26-49"
+data_real_list = [f"{data_real_dir}"]
+data_sim_list = []
+data_sim_list =[f"{data_sim_dir}2023-07-20-12-44-49",
+                f"{data_sim_dir}2023-07-20-15-11-35",
+                f"{data_sim_dir}2023-08-31-12-43-09",
+                f"{data_sim_dir}2023-08-31-17-38-56",
+                f"{data_sim_dir}2023-08-31-17-46-35",
+                f"{data_sim_dir}2023-08-31-17-58-47",
+                f"{data_sim_dir}2023-08-31-18-25-48",
+                f"{data_sim_dir}2023-08-31-18-38-10",
+                f"{data_sim_dir}2023-09-05-10-46-44",
+                f"{data_sim_dir}2023-09-05-17-52-22",
+                f"{data_sim_dir}2023-09-05-18-15-04",
+                f"{data_sim_dir}2023-09-07-11-39-09",
+                f"{data_sim_dir}2023-09-08-08-26-58",
+                f"{data_sim_dir}2023-09-08-08-33-30",
+                f"{data_sim_dir}2023-09-08-08-43-51",
+                f"{data_sim_dir}2023-09-08-09-37-12",
+                f"{data_sim_dir}2023-09-08-11-44-53",
+                f"{data_sim_dir}2023-09-08-11-49-02",
+                f"{data_sim_dir}2023-09-08-11-53-42",
+                f"{data_sim_dir}2023-09-08-11-55-47",
+                f"{data_sim_dir}2023-09-12-10-26-49"
             ]
-    # Initialize data set and data loader and model CNN
-    dataset = NeighborhoodDataset(data_list)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-else:
-    dataset = HallwayDataset("C:\\Users\\Cleah\\Documents\\Projects\\University Research\\Robot Learning Lab\\Simulator\\airsim-car-experiments\\PythonClient\\reinforcement_learning\\balanced_data_split\\", 
-                             transform=transform
-                             )
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
+real_data = load_real_data(data_real_list)
+sim_data = load_sim_data(data_sim_list)
+print(f"Sim images lenght {sim_data[0].shape} and sa {sim_data[1].shape}")
+print(f"Real images lenght {real_data[0].shape} and sa {real_data[1].shape}")
 
-# iter1 = iter(trainloader1)
-# all_batches = [next(iter1) for _ in range(len(trainloader1))]
-# data1 = torch.cat([batch[1] for batch in all_batches], dim=0)
+print(f"Max of real images = {torch.max(real_data[0])} and min = {torch.min(real_data[0])}")
+print(f"Max of real sa = {torch.max(real_data[1])} and min = {torch.min(real_data[1])}")
+print(f"Max of sim images = {torch.max(sim_data[0])} and min = {torch.min(sim_data[0])}")
+print(f"Max of sim sa = {torch.max(sim_data[1])} and min = {torch.min(sim_data[1])}")
 
-# iter2 = iter(trainloader2)
-# all_batches = [next(iter2) for _ in range(len(trainloader2))]
-# data2 = torch.cat([batch[1] for batch in all_batches], dim=0)
-# print(data1.shape)
-# print(data2.shape)
+shuffled_real_sim_data = shuffle_real_sim_data(real_data, sim_data, sim_ratio)
 
-# plot_two_datasets(data1, torch.reshape(data2, (3260, 1)))
-# plot_two_datasets(data1, data2)
+dataset = ImageSteeringAngleDataset(shuffled_real_sim_data[0], shuffled_real_sim_data[1])
+length = dataset.__len__()
+train_length = int(0.8 * length)
+test_length = int(length - train_length)
+split = random_split(dataset, [train_length, test_length], generator=torch.Generator().manual_seed(42))
 
 
-dataloader_length = len(dataloader)
+trainloader = torch.utils.data.DataLoader(split[0], batch_size=batch_size, shuffle=True)
+testloader = torch.utils.data.DataLoader(split[1], batch_size=batch_size, shuffle=True)
+
+
+
+# Loads model
 cnn = NeighborhoodRealCNN()
 
 # Optimizer
@@ -88,51 +95,52 @@ running_losses_list = []
 for epoch in range(epochs):  # loop over the dataset epoch times
     running_loss = 0.0
     print(f"Epoch {epoch}")
-    elem1, elem2, elem3, elem4 = [], [], [], []
-    for i, data in enumerate(dataloader, 0):
+    for i, data in enumerate(trainloader, 0):
         
         # get the inputs; data is a list of [inputs, labels]
         image, steering_angle = data
+        # print(torch.min(image[0]), torch.max(image[0]))
+        # assert False
+        # print(f"steering_angle {steering_angle}")
         image, steering_angle = image.float(), steering_angle.float()
-        print(f"Norm of steering angle Real = {np.linalg.norm(steering_angle.numpy())}")
-        # print(f"Image: {image}")
-        # print (f"#{i}")
-        # print(f"Steering Angle Data = {steering_angle}")
-        # elem1.append(steering_angle[0][0])
-        # elem2.append(steering_angle[0][1])
-        # elem3.append(steering_angle[0][2])
-        # elem4.append(steering_angle[0][3])
         # zero the parameter gradients
         optimizer.zero_grad()
         outputs = cnn(image)
-        # print(f"Steering Angle Model = {outputs}")
         loss_out = loss(outputs, steering_angle)
         loss_out.backward()
         optimizer.step()
         running_loss += loss_out.item()
     
-    # plt.plot(elem1, color='red', label='Element 1')
-    # plt.plot(elem2, color='blue', label='Element 2')
-    # plt.plot(elem3, color='green', label='Element 3')
-    # plt.plot(elem4, color='purple', label='Element 4')
-    # plt.title(f'Comparison of the 4 elements of the steering angle Tensor')
-    # plt.ylabel('Steering Angle')
-    # plt.xlabel('Data Point')
-    # plt.legend(loc="upper right")
-    # plt.show()
-
-
-    # if i % 2000 == 1999:    # print every 2000 mini-batches
-    #     print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-    print(f"Running Loss {running_loss / dataloader_length}")
-    running_losses_list.append(float(running_loss / dataloader_length))
+    print(f"Running Loss {running_loss / len(trainloader)}")
+    running_losses_list.append(float(running_loss / len(trainloader)))
 
 print('Finished Training')
-torch.save(cnn.state_dict(), os.path.join(PATH, model_path))
-print(running_losses_list)
-
-# if (not SIMULATOR):
-#     plot_model_sim_output()
 
 # Plot train losses
-plot_loss_curve(running_losses_list[1:], epochs)
+plot_loss_curve(running_losses_list, epochs)
+
+torch.save(cnn, model_dir)
+
+
+# Use saved model
+cnn = NeighborhoodRealCNN()
+cnn.load_state_dict(torch.load(os.path.join(model_dir)))
+cnn.eval()
+
+# Optimizer
+loss = nn.MSELoss()
+
+running_loss = 0;
+for i, data in enumerate(testloader, 0):
+    # get the inputs; data is a list of [inputs, labels]
+    inputs, labels = data
+    inputs, labels = inputs.float(), labels.float()
+    outputs = cnn(inputs)
+    loss_out = loss(outputs, labels)
+
+    running_loss += loss_out.item()
+    print(f"Loss out {loss_out.item()}")
+
+print(f"Running Loss {running_loss / i}")
+
+print('Finished Testing')
