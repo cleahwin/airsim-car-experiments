@@ -5,10 +5,11 @@ import cv2
 import numpy as np
 import torch
 import pandas as pd
+import matplotlib.pyplot as plt
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, IterableDataset
-from torchvision import transforms
 import torchvision.transforms as transforms
+from torchvision.transforms import v2 as transforms_v2
 
 class NeighborhoodDataset(Dataset):
     def __init__(self, data_path_list: list):
@@ -77,10 +78,10 @@ class HallwayDataset(Dataset):
 
     def __init__(self, data_path: str, transform=None):
         # normalize steering tensors
-        self.steering_angles = torch.from_numpy(np.load(data_path + "split_ctrls\ctrls_2.npy"))
+        self.steering_angles = torch.from_numpy(np.load(data_path + "split_ctrls/ctrls_2.npy"))
         self.steering_angles = (self.steering_angles - self.steering_angles.mean()) / self.steering_angles.std()
 
-        self.images = torch.from_numpy(np.load(data_path + "split_images\images_2.npy"))
+        self.images = torch.from_numpy(np.load(data_path + "split_images/images_2.npy"))
         self.images = torch.permute(self.images, (0, 3, 1, 2))
         self.transform = transform
         # print(f"max={torch.max(self.images[0])}, min={torch.min(self.images[0])}")
@@ -139,18 +140,21 @@ def load_sim_data(
     for idx in range(len(image_file_names)):
         image_path = image_file_names[idx]
 
-        image = Image.open(image_path) 
+        image = Image.open(image_path).convert('RGB')
         trans = transforms.Compose(
             [
-                transforms.ToTensor(),
+                transforms_v2.ToImage(),
+                transforms_v2.ToDtype(torch.float32, scale=True),  # Normalize expects float input
+                transforms_v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
             ]
         )
         
         img_tensor = trans(image)
-        img_tensor = img_tensor[:3, :, :]    
+        # print(img_tensor.shape, img_tensor[0].min(), img_tensor[0].max())
+        # img_tensor = img_tensor[:3, :, :]    
 
-        transform = (transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
-        img_tensor = transform(img_tensor)
+        # transform = (transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)))
+        # img_tensor = transform(img_tensor)
 
         # img_tensor = img_tensor[:3, :, :]  # (3, 144, 256)
         images.append(img_tensor)
@@ -162,9 +166,7 @@ def load_sim_data(
     return (images_tensor, steering_angles_tensor)
 
 
-def load_real_data(
-    data_path_list: List[str]
-) -> Tuple[torch.Tensor, torch.Tensor]:
+def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tensor]:
     """Load real data from a list of data paths.
 
     Args:
@@ -179,26 +181,71 @@ def load_real_data(
     images_list = []
     path = data_path_list[0]
 
-    for i in range(1, 20):
+    for i in range(1, 2):
         print(i)
-        steering_angles = torch.from_numpy(np.load(path + f"split_ctrls\ctrls_{i}.npy"))
+        # Loading steering angles.
+        steering_angles = torch.from_numpy(np.load(path + f"/split_ctrls/ctrls_{i}.npy"))
         steering_angles = (steering_angles - steering_angles.mean()) / steering_angles.std()
-        steering_angles_tensor = steering_angles[:, 0].unsqueeze(1)
-
-        images = torch.from_numpy(np.load(path + f"split_images\images_{i}.npy"))
-        images = torch.permute(images, (0, 3, 1, 2))
         
-        # Normalize all images in images from this data file
-        for idx in range(len(images)):
-            mean, std = images[idx].mean([1,2]), images[idx].std([1,2])
-            transform = transforms.Normalize(mean, std)
-            images_list.append(transform(images[idx]))
+        # Check if all controls are not zero
+        non_zero_mask = torch.any(steering_angles != 0, dim=1)
+        steering_angles = steering_angles[non_zero_mask]
+        
+        if len(steering_angles) > 0:  # Check if there are non-zero controls
+            steering_angles_tensor = steering_angles[:, :1]  # Select only the first control
 
+            images = torch.from_numpy(np.load(path + f"/split_images/images_{i}.npy"))
+            images = torch.permute(images, (0, 3, 1, 2))
+            image_transforms = transforms_v2.Compose([
+                transforms_v2.ToDtype(torch.float32, scale=True),  # Normalize expects float input
+                transforms_v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                transforms.Resize(size=(144, 256))
+            ])
+            
+            # img_tensor = img_tensor[:3]  # Remove the batch dimension
+            # mean, std = img_tensor.mean(), img_tensor.std()  # Calculate mean and std for the entire batch
+            # transform = transforms.Normalize(mean, std)
+            img_tensor = image_transforms(images)
 
-    images_tensor = torch.stack(images_list, dim=0)
+            # Append the normalized image tensor to the list
+            images_list.append(img_tensor)
+            steering_angles_list.append(steering_angles_tensor)
+    
+    # Stack the list of images tensors to form a single tensor
+    images_tensor = torch.cat(images_list, dim=0)
+    images_tensor = images_tensor[non_zero_mask]
     print(images_tensor.shape)
-    print(f"real images: {torch.min(images_tensor[0]), torch.max(images_tensor[0])}")
-    return (images_tensor, steering_angles_tensor)
+    # Display the second image from the tensor
+    plt.imshow(images_tensor[0].permute(1,2,0))  # Remove the channel dimension and change dimensions order
+    plt.show()
+
+    # Concatenate the list of steering angle tensors to form a single tensor
+    steering_angles_tensor = torch.cat(steering_angles_list, dim=0)
+
+    return images_tensor, steering_angles_tensor    # for i in range(1, 20):
+    #     print(i)
+    #     steering_angles = torch.from_numpy(np.load(path + f"split_ctrls\ctrls_{i}.npy"))
+    #     steering_angles = (steering_angles - steering_angles.mean()) / steering_angles.std()
+    #     steering_angles_tensor = steering_angles[:, 0].unsqueeze(1)
+
+    #     images = torch.from_numpy(np.load(path + f"split_images\images_{i}.npy"))
+    #     images = torch.permute(images, (0, 3, 1, 2)).float()
+        
+    #     # Normalize all images in images from this data file
+    #     for idx in range(len(images)):
+    #         mean, std = images[idx].mean([1,2]), images[idx].std([1,2])
+    #         transform = transforms.Normalize(mean, std)
+    #         images_list.append(transform(images[idx]))
+
+    #     # Check if controls are not all zero
+    #     if torch.any(steering_angles_tensor[idx] != 0):
+    #         images_list.append(normalized_image)
+    #         steering_angles_list.append(steering_angles_tensor[idx])
+
+    # images_tensor = torch.stack(images_list, dim=0)
+    # print(images_tensor.shape)
+    # print(f"real images: {torch.min(images_tensor[0]), torch.max(images_tensor[0])}")
+    # return (images_tensor, steering_angles_tensor)
 
 
 def shuffle_real_sim_data(

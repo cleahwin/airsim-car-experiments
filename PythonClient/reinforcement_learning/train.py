@@ -23,7 +23,7 @@ ROOT_DIR = "/homes/iws/cleahw/AirSim_Research/airsim-car-experiments/PythonClien
 
 # Specify ratio of real:sim. 1 - sim_ratio = real_ratio
 sim_ratio = 0
-data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/"
+data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/Coastline/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
 model_dir = f"{ROOT_DIR}saved_models/sim_model.pth"
 
