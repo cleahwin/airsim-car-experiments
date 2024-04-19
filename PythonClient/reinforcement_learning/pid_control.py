@@ -9,7 +9,7 @@ from scipy.spatial.transform import Rotation as R
 # boolean representing whether to display graphs
 GRAPH = False
 # data set of riding normally through neighborhood
-data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-11-16-19-34/airsim_rec.txt"
+data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-18-17-22-22/airsim_rec.txt"
 
 # connect to the AirSim simulator
 client = airsim.CarClient()

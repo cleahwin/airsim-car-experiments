@@ -181,8 +181,10 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
     images_list = []
     path = data_path_list[0]
 
-    for i in range(1, 2):
+    for i in range(1, 21):
         print(i)
+        if i == 9:
+            continue
         # Loading steering angles.
         steering_angles = torch.from_numpy(np.load(path + f"/split_ctrls/ctrls_{i}.npy"))
         steering_angles = (steering_angles - steering_angles.mean()) / steering_angles.std()
@@ -193,8 +195,8 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
         
         if len(steering_angles) > 0:  # Check if there are non-zero controls
             steering_angles_tensor = steering_angles[:, :1]  # Select only the first control
-
             images = torch.from_numpy(np.load(path + f"/split_images/images_{i}.npy"))
+            
             images = torch.permute(images, (0, 3, 1, 2))
             image_transforms = transforms_v2.Compose([
                 transforms_v2.ToDtype(torch.float32, scale=True),  # Normalize expects float input
@@ -213,39 +215,15 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
     
     # Stack the list of images tensors to form a single tensor
     images_tensor = torch.cat(images_list, dim=0)
-    images_tensor = images_tensor[non_zero_mask]
     print(images_tensor.shape)
-    # Display the second image from the tensor
-    plt.imshow(images_tensor[0].permute(1,2,0))  # Remove the channel dimension and change dimensions order
-    plt.show()
+
+    # images_tensor = images_tensor[non_zero_mask]
+    # steering_angles_tensor = steering_angles_tensor[non_zero_mask]
 
     # Concatenate the list of steering angle tensors to form a single tensor
     steering_angles_tensor = torch.cat(steering_angles_list, dim=0)
 
-    return images_tensor, steering_angles_tensor    # for i in range(1, 20):
-    #     print(i)
-    #     steering_angles = torch.from_numpy(np.load(path + f"split_ctrls\ctrls_{i}.npy"))
-    #     steering_angles = (steering_angles - steering_angles.mean()) / steering_angles.std()
-    #     steering_angles_tensor = steering_angles[:, 0].unsqueeze(1)
-
-    #     images = torch.from_numpy(np.load(path + f"split_images\images_{i}.npy"))
-    #     images = torch.permute(images, (0, 3, 1, 2)).float()
-        
-    #     # Normalize all images in images from this data file
-    #     for idx in range(len(images)):
-    #         mean, std = images[idx].mean([1,2]), images[idx].std([1,2])
-    #         transform = transforms.Normalize(mean, std)
-    #         images_list.append(transform(images[idx]))
-
-    #     # Check if controls are not all zero
-    #     if torch.any(steering_angles_tensor[idx] != 0):
-    #         images_list.append(normalized_image)
-    #         steering_angles_list.append(steering_angles_tensor[idx])
-
-    # images_tensor = torch.stack(images_list, dim=0)
-    # print(images_tensor.shape)
-    # print(f"real images: {torch.min(images_tensor[0]), torch.max(images_tensor[0])}")
-    # return (images_tensor, steering_angles_tensor)
+    return (images_tensor, steering_angles_tensor)  
 
 
 def shuffle_real_sim_data(
@@ -277,6 +255,8 @@ def shuffle_real_sim_data(
     sample_sim_images = (sim_data[0])[:sim_data_len]
     sample_sim_steering_angle = (sim_data[1])[:sim_data_len]
 
+    print(f"Sim Images Size = {len(sample_sim_images)}, Real Images Size = {len(sample_real_images)}")
+
     # Combine real and sim data.
     combined_images = torch.cat((sample_real_images, sample_sim_images), dim=0)
 
@@ -291,7 +271,7 @@ def shuffle_real_sim_data(
 
     # # Split the shuffled tensor back into two pairs of tensors
     # shuffled_image_pair, shuffled_steering_angle_pair = torch.split(shuffled_image_sa, len(sample_real_images), dim=0)
-
+    
     return (combined_images, combined_steering_angles)
 
 

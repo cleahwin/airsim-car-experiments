@@ -24,6 +24,7 @@ def plot_model_sim_output (model=None, sim=None):
     plt.show()
 
 def plot_loss_curve (running_loss, epochs):
+    plt.close()
     print(running_loss)
     plt.plot(running_loss)
     plt.title(f'Loss Curve for {epochs} Epochs on Training Data')
