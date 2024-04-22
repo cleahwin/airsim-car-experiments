@@ -32,8 +32,8 @@ sim_ratio = 0
 sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
-batch_size = 6
-epochs = 100
+batch_size = 8
+epochs = 50
 learning_rate = 0.0001
 momentum = 0.9
 
@@ -58,6 +58,21 @@ if sim_environ == "Coastline":
                     f"{data_sim_dir}2024-04-18-17-22-22",
                     f"{data_sim_dir}2024-04-19-13-52-02",
                     f"{data_sim_dir}2024-04-19-13-57-37",
+                    f"{data_sim_dir}2024-04-20-16-12-17",
+                    f"{data_sim_dir}2024-04-20-16-17-13",
+                    f"{data_sim_dir}2024-04-20-16-21-48",
+                    f"{data_sim_dir}2024-04-20-16-31-21",
+                    f"{data_sim_dir}2024-04-20-16-38-36",
+                    f"{data_sim_dir}2024-04-20-16-47-03",
+                    f"{data_sim_dir}2024-04-20-16-57-50",
+                    f"{data_sim_dir}2024-04-20-17-10-45",
+                    f"{data_sim_dir}2024-04-22-14-56-57",
+                    f"{data_sim_dir}2024-04-22-14-57-45",
+                    f"{data_sim_dir}2024-04-22-15-16-09",
+                    f"{data_sim_dir}2024-04-22-15-17-43",
+                    f"{data_sim_dir}2024-04-22-15-30-21",
+                    f"{data_sim_dir}2024-04-22-15-43-40",
+                    f"{data_sim_dir}2024-04-22-15-48-06"
                 ]
 else:
     data_sim_list =[f"{data_sim_dir}2023-07-20-12-44-49",
@@ -112,10 +127,11 @@ cnn = NeighborhoodRealCNN()
 # Optimizer
 loss = nn.MSELoss()
 optimizer = optim.SGD(cnn.parameters(), lr=learning_rate, momentum=momentum)
-running_losses_list = []
+train_losses = []
+test_losses = []
 
 for epoch in range(epochs):  # loop over the dataset epoch times
-    running_loss = 0.0
+    train_loss = 0.0
     print(f"EPOCH {epoch}")
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -130,16 +146,39 @@ for epoch in range(epochs):  # loop over the dataset epoch times
         loss_out = loss(outputs, steering_angle)
         loss_out.backward()
         optimizer.step()
-        running_loss += loss_out.detach()
+        train_loss += loss_out.detach()
         if i % 100 == 0:
             print(f"  Step {i}, loss={loss_out.detach()}")
-    print(f"Train  Loss {running_loss / len(trainloader)}\n")
-    running_losses_list.append(float(running_loss / len(trainloader)))
+    print(f"Train  Loss {train_loss / len(trainloader)}\n")
+    train_losses.append(float(train_loss / len(trainloader)))
+
+    with torch.no_grad():
+        test_loss = 0.0
+        for i, data in enumerate(testloader, 0):
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, labels = data
+            inputs, labels = inputs.float(), labels.float()
+            outputs = cnn(inputs)
+            loss_out = loss(outputs, labels)
+            test_loss += loss_out.item()
+            print(f"Loss out {loss_out.item()}")
+    test_losses.append(test_loss / len(testloader))
 
 print('Finished Training')
 
 # Plot train losses
-plot_loss_curve(running_losses_list, epochs)
+plt.figure(figsize=(10, 5))
+plt.plot(train_losses, label='Train Loss')
+plt.plot(test_losses, label='Test Loss')
+plt.title('Test Loss Curve')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True)
+
+# Save plot to file
+plt.savefig('test_loss_curve.png')
+# plot_loss_curve(running_losses_list, epochs)
 current_date_time = datetime.now()
 curr_time = current_date_time.strftime("%Y-%m-%d")
 model_dir = f"{ROOT_DIR}saved_models/{sim_ratio}-{curr_time}.pth"
@@ -159,7 +198,7 @@ cnn.eval()
 # Optimizer
 loss = nn.MSELoss()
 running_loss = 0;
-
+running_loss_list = []
 with torch.no_grad():
     for i, data in enumerate(testloader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -169,6 +208,8 @@ with torch.no_grad():
         loss_out = loss(outputs, labels)
         running_loss += loss_out.item()
         print(f"Loss out {loss_out.item()}")
+        running_loss_list.append(running_loss)
+
 
 print(f"Test Loss {running_loss / len(testloader)}")
 print('Finished Testing')
