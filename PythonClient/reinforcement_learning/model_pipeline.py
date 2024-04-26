@@ -27,14 +27,14 @@ from PIL import Image
 
 ROOT_DIR = "/homes/iws/cleahw/AirSim_Research/airsim-car-experiments/PythonClient/"
 # Specify ratio of real:sim. 1 - sim_ratio = real_ratio
-sim_ratio = 0
+sim_ratio = 0.5
 # Coastline or Neighborhood
 sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
 batch_size = 8
-epochs = 50
-learning_rate = 0.0001
+epochs = 30
+learning_rate = 0.001
 momentum = 0.9
 
 
@@ -72,7 +72,10 @@ if sim_environ == "Coastline":
                     f"{data_sim_dir}2024-04-22-15-17-43",
                     f"{data_sim_dir}2024-04-22-15-30-21",
                     f"{data_sim_dir}2024-04-22-15-43-40",
-                    f"{data_sim_dir}2024-04-22-15-48-06"
+                    f"{data_sim_dir}2024-04-22-15-48-06",
+                    f"{data_sim_dir}2024-04-23-14-59-50",
+                    f"{data_sim_dir}2024-04-23-16-10-21",
+                    f"{data_sim_dir}2024-04-23-16-12-42"
                 ]
 else:
     data_sim_list =[f"{data_sim_dir}2023-07-20-12-44-49",
