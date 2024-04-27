@@ -180,8 +180,8 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
     steering_angles_list = []
     images_list = []
     path = data_path_list[0]
-
-    for i in range(1, 21):
+    # NOT LOADING ALL DATA
+    for i in range(1, 17):
         print(i)
         if i == 9:
             continue
