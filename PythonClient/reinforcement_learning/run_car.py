@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import math
 import pandas as pd
 
-from image_dataset import HallwayDataset, NeighborhoodDataset
 from model import NeighborhoodRealCNN
 from torchvision import transforms
 import torchvision.transforms.functional as F
@@ -23,7 +22,7 @@ print("API Control enabled: %s" % client.isApiControlEnabled())
 
 # Use saved model
 cnn = NeighborhoodRealCNN()
-cnn.load_state_dict(torch.load(os.path.join(PATH,"realOnSim.pth")))
+cnn.load_state_dict(torch.load(os.path.join(PATH,"0-2024-04-19.pth")))
 cnn.eval()
 data_path = "C:/Users/Cleah/Documents/AirSim/Neighborhood/2023-09-05-10-46-44"
 df = pd.read_csv(data_path + "/airsim_rec.txt", delimiter = "\t", header = 0)
