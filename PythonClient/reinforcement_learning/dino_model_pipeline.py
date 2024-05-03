@@ -9,6 +9,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
 import image_dataset
+import psutil
 
 importlib.reload(image_dataset)
 from image_dataset import ImageSteeringAngleDataset, load_real_data, load_sim_data, shuffle_real_sim_data
@@ -33,10 +34,10 @@ sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
 batch_size = 8
-epochs = 30
+epochs = 150
 learning_rate = 0.0001
 momentum = 0.9
-use_dino = True  
+use_dino = False  
 dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
 
 ##################
@@ -169,6 +170,7 @@ for epoch in range(epochs):  # loop over the dataset epoch times
         loss_out.backward()
         optimizer.step()
         running_loss += loss_out.detach()
+        # print('Ram Memory percent used : ', psutil.virtual_memory()[2])
         if i % 100 == 0:
             print(f"  Step {i}, loss={loss_out.detach()}")
     print(f"Train  Loss {running_loss / len(trainloader)}\n")
@@ -193,9 +195,9 @@ torch.save(cnn.state_dict(), model_dir)
 # Define model selection based on the flag
 if use_dino:
     # Use DINO model
-    cnn = dinov2_vitg14
+    cnn = dinov2_vits14
     # Modify the classifier head to adapt to your task
-    num_features = dinov2_vitg14.embed_dim    # Get the number of input features from the classifier head
+    num_features = dinov2_vits14.embed_dim    # Get the number of input features from the classifier head
     cnn.head = nn.Linear(num_features, 1)  # Assuming output size is 8 for steering angle prediction
 else:
     # Use custom model
