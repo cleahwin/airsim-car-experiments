@@ -146,6 +146,8 @@ def load_sim_data(
                 transforms_v2.ToImage(),
                 transforms_v2.ToDtype(torch.float32, scale=True),  # Normalize expects float input
                 transforms_v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                transforms.Resize(size=(140, 252))
+
             ]
         )
         
@@ -181,7 +183,7 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
     images_list = []
     path = data_path_list[0]
     # NOT LOADING ALL DATA
-    for i in range(1, 17):
+    for i in range(1, 15):
         print(i)
         if i == 9:
             continue
@@ -201,7 +203,8 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
             image_transforms = transforms_v2.Compose([
                 transforms_v2.ToDtype(torch.float32, scale=True),  # Normalize expects float input
                 transforms_v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                transforms.Resize(size=(144, 256))
+                # transforms.Resize(size=(144, 256))
+                transforms.Resize(size=(140, 252))
             ])
             
             # img_tensor = img_tensor[:3]  # Remove the batch dimension
