@@ -12,7 +12,7 @@ import image_dataset
 import psutil
 
 importlib.reload(image_dataset)
-from image_dataset import ImageSteeringAngleDataset, load_real_data, load_sim_data, shuffle_real_sim_data
+from image_dataset import NeighborhoodDataset
 from model import NeighborhoodRealCNN
 from utils_graphs import plot_two_datasets, plot_model_sim_output, plot_loss_curve
 import torchvision.transforms as transforms
@@ -34,10 +34,10 @@ sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
 batch_size = 8
-epochs = 150
+epochs = 10
 learning_rate = 0.0001
 momentum = 0.9
-use_dino = False  
+use_dino = True  
 dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
 
 ##################
@@ -114,12 +114,16 @@ else:
                     f"{data_sim_dir}2023-09-12-10-26-49"
                 ]
 
-real_data = load_real_data(data_real_list)
-sim_data = load_sim_data(data_sim_list)
-shuffled_real_sim_data = shuffle_real_sim_data(real_data, sim_data, sim_ratio)
 
-# Splits datasets into train and test
-dataset = ImageSteeringAngleDataset(shuffled_real_sim_data[0], shuffled_real_sim_data[1])
+# Create instances of your datasets
+dataset = NeighborhoodDataset(data_sim_list)
+
+# real_data = load_real_data(data_real_list)
+# sim_data = load_sim_data(data_sim_list)
+# shuffled_real_sim_data = shuffle_real_sim_data(real_data, sim_data, sim_ratio)
+
+# # Splits datasets into train and test
+# dataset = ImageSteeringAngleDataset(shuffled_real_sim_data[0], shuffled_real_sim_data[1])
 length = dataset.__len__()
 train_length = int(0.8 * length)
 test_length = int(length - train_length)
@@ -159,6 +163,7 @@ for epoch in range(epochs):  # loop over the dataset epoch times
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
         image, steering_angle = data
+        # print(f"Image shape: {image.shape}")
         # print(torch.min(image[0]), torch.max(image[0]))
         # assert False
         # print(f"steering_angle {steering_angle}")
