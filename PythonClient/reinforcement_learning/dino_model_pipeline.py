@@ -86,8 +86,8 @@ if sim_environ == "Coastline":
                     f"{data_sim_dir}2024-04-29-08-44-46",
                     f"{data_sim_dir}2024-04-29-08-53-58",
                     f"{data_sim_dir}2024-04-29-08-56-58",
-                    #f"{data_sim_dir}",
-
+                    f"{data_sim_dir}2024-05-09-18-02-11",
+                    f"{data_sim_dir}2024-05-10-14-46-30",
                 ]
 
 else:

@@ -18,7 +18,7 @@ class NeighborhoodDataset(Dataset):
         self.image_file_names = []
         self.steering_angles = []
 
-        for path in data_path_list:
+        for path in data_path_list[:10]:
             image_paths = path + "/images/"
             timestamps_path = path + "/airsim_rec.txt"
 
