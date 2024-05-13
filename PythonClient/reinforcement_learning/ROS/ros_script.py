@@ -45,9 +45,8 @@ class SteeringAngleNode:
     def image_callback(self, image_msg):
         cv_image = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
         tensor_image = self.preprocess_image(cv_image)
-        if tensor_image is not None:
-            steering_angle = self.infer_steering_angle(tensor_image)
-            self.steering_pub.publish(Float32(steering_angle))
+        steering_angle = self.infer_steering_angle(tensor_image)
+        self.steering_pub.publish(Float32(steering_angle))
 
     def run(self):
         self.bridge = CvBridge()
