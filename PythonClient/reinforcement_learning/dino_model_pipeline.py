@@ -34,10 +34,10 @@ sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
 batch_size = 8
-epochs = 10
-learning_rate = 0.0001
+epochs = 21
+learning_rate = 0.001
 momentum = 0.9
-use_dino = True  
+use_dino = False  
 dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
 
 ##################
@@ -88,6 +88,10 @@ if sim_environ == "Coastline":
                     f"{data_sim_dir}2024-04-29-08-56-58",
                     f"{data_sim_dir}2024-05-09-18-02-11",
                     f"{data_sim_dir}2024-05-10-14-46-30",
+                    f"{data_sim_dir}2024-05-12-17-47-56",
+                    f"{data_sim_dir}2024-05-12-17-53-22",
+                    f"{data_sim_dir}2024-05-12-17-54-21",
+                    f"{data_sim_dir}2024-05-12-17-55-34",
                 ]
 
 else:
@@ -156,7 +160,6 @@ else:
 loss = nn.MSELoss()
 optimizer = optim.SGD(cnn.parameters(), lr=learning_rate, momentum=momentum)
 running_losses_list = []
-
 for epoch in range(epochs):  # loop over the dataset epoch times
     running_loss = 0.0
     print(f"EPOCH {epoch}")

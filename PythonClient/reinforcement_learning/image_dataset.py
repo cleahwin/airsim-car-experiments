@@ -18,7 +18,7 @@ class NeighborhoodDataset(Dataset):
         self.image_file_names = []
         self.steering_angles = []
 
-        for path in data_path_list[:10]:
+        for path in data_path_list:
             image_paths = path + "/images/"
             timestamps_path = path + "/airsim_rec.txt"
 
@@ -27,9 +27,10 @@ class NeighborhoodDataset(Dataset):
 
             # Convert the column of image file names to a list
             self.image_file_names.extend((image_paths + poses_data["ImageFile"]).to_list())
-
             # Convert the column of steering angle data dataframe to numpy to torch tensor
             self.steering_angles.append(torch.from_numpy(poses_data[["Steering"]].to_numpy()))
+        print(f"# Sim images = {len(self.image_file_names)}")
+
 
         self.steering_angles = torch.cat(self.steering_angles)
         
