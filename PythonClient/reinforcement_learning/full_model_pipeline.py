@@ -13,7 +13,7 @@ import psutil
 
 importlib.reload(image_dataset)
 from image_dataset import NeighborhoodDataset
-from model import NeighborhoodRealCNN
+from model import NeighborhoodRealCNN, NeighborhoodResNet
 from utils_graphs import plot_two_datasets, plot_model_sim_output, plot_loss_curve
 import torchvision.transforms as transforms
 from torch.utils.data import random_split
@@ -25,10 +25,9 @@ from PIL import Image
 ## HYPERPARAMETERS ##
 #####################
 
-
 ROOT_DIR = "/homes/iws/cleahw/AirSim_Research/airsim-car-experiments/PythonClient/"
 # Specify ratio of real:sim. 1 - sim_ratio = real_ratio
-sim_ratio = 1
+sim_ratio = 0
 # Coastline or Neighborhood
 sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
@@ -38,7 +37,7 @@ epochs = 21
 learning_rate = 0.001
 momentum = 0.9
 use_dino = False  
-dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
+# dinov2_vits14 = torch.hub.load('facebookresearch/dinov2', 'dinov2_vits14')
 
 ##################
 ## DATA LOADING ##
@@ -154,6 +153,7 @@ if use_dino:
     cnn.head = nn.Linear(num_features, 1)  # Assuming output size is 8 for steering angle prediction
 else:
     # Use custom model
+    # cnn = NeighborhoodResNet()
     cnn = NeighborhoodRealCNN()
 
 # Optimizer
@@ -166,10 +166,6 @@ for epoch in range(epochs):  # loop over the dataset epoch times
     for i, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
         image, steering_angle = data
-        # print(f"Image shape: {image.shape}")
-        # print(torch.min(image[0]), torch.max(image[0]))
-        # assert False
-        # print(f"steering_angle {steering_angle}")
         image, steering_angle = image.float(), steering_angle.float()
         # zero the parameter gradients
         optimizer.zero_grad()
@@ -178,11 +174,12 @@ for epoch in range(epochs):  # loop over the dataset epoch times
         loss_out.backward()
         optimizer.step()
         running_loss += loss_out.detach()
-        # print('Ram Memory percent used : ', psutil.virtual_memory()[2])
         if i % 100 == 0:
             print(f"  Step {i}, loss={loss_out.detach()}")
-    print(f"Train  Loss {running_loss / len(trainloader)}\n")
-    running_losses_list.append(float(running_loss / len(trainloader)))
+        del loss_out
+        del image, steering_angle
+    print(f"Train  Loss {running_loss / len(trainloader.dataset)}\n")
+    running_losses_list.append(float(running_loss / len(trainloader.dataset)))
 
 print('Finished Training')
 
@@ -200,18 +197,8 @@ torch.save(cnn.state_dict(), model_dir)
 
 
 # Use saved model
-# Define model selection based on the flag
-if use_dino:
-    # Use DINO model
-    cnn = dinov2_vits14
-    # Modify the classifier head to adapt to your task
-    num_features = dinov2_vits14.embed_dim    # Get the number of input features from the classifier head
-    cnn.head = nn.Linear(num_features, 1)  # Assuming output size is 8 for steering angle prediction
-else:
-    # Use custom model
-    cnn = NeighborhoodRealCNN()
-
-cnn.load_state_dict(torch.load(os.path.join(model_dir)))
+   
+# cnn.load_state_dict(torch.load(model_dir))
 cnn.eval()
 
 # Optimizer
@@ -228,5 +215,5 @@ with torch.no_grad():
         running_loss += loss_out.item()
         print(f"Loss out {loss_out.item()}")
 
-print(f"Test Loss {running_loss / len(testloader)}")
+print(f"Final Test Loss {running_loss / len(testloader.dataset)}")
 print('Finished Testing')
