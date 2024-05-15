@@ -22,7 +22,7 @@ print("API Control enabled: %s" % client.isApiControlEnabled())
 
 # Use saved model
 cnn = NeighborhoodRealCNN()
-cnn.load_state_dict(torch.load(os.path.join(PATH,"1-2024-05-03.pth")))
+cnn.load_state_dict(torch.load(os.path.join(PATH,"1-2024-05-12.pth")))
 cnn.eval()
 data_path = "C:/Users/Cleah/Documents/AirSim/Neighborhood/2023-09-05-10-46-44"
 df = pd.read_csv(data_path + "/airsim_rec.txt", delimiter = "\t", header = 0)
@@ -36,7 +36,7 @@ car_controls = airsim.CarControls()
 steering_angles = []
 
 # loop through fixed steps and input is from image api
-for i in range(0, 1000):
+for i in range(0, 10000):
     # get the inputs; data is a list of [inputs, labels]
     # inputs, labels = data
     # inputs, labels = inputs.float(), labels.float()
