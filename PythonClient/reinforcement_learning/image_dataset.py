@@ -343,7 +343,7 @@ def shuffle_real_sim_data(
     sim_data_len = int(sim_ratio * final_data_len)
     real_data_len = int(final_data_len - sim_data_len)
     # NOTE: REMOVE BELOW LINE
-    sim_data_len = len(sim_data[1])
+    #sim_data_len = len(sim_data[1])
 
     #TODO: Get random subsamples
     # Sample real and sim data.

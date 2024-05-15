@@ -28,7 +28,7 @@ from PIL import Image
 
 ROOT_DIR = "/homes/iws/cleahw/AirSim_Research/airsim-car-experiments/PythonClient/"
 # Specify ratio of real:sim. 1 - sim_ratio = real_ratio
-sim_ratio = 1
+sim_ratio = 0.5
 # Coastline or Neighborhood
 sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
