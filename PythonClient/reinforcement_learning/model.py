@@ -35,19 +35,18 @@ class NeighborhoodRealCNN(nn.Module):
 
         return x
 
-# Define ResNet-18 as the backbone
 class NeighborhoodResNet(nn.Module):
     def __init__(self, num_classes=1):
         super(NeighborhoodResNet, self).__init__()
         resnet = models.resnet18(pretrained=True)
         self.features = nn.Sequential(*list(resnet.children())[:-1])  # Remove the final fully connected layer
         self.fc = nn.Linear(resnet.fc.in_features, num_classes)
-        self.tanh = nn.Tanh()  # Apply Tanh activation
+        self.tanh = nn.Tanh()
 
     def forward(self, x):
         x = self.features(x)
         x = torch.flatten(x, 1)
         x = self.fc(x)
-        x = self.tanh(x)  # Apply Tanh activation
+        x = self.tanh(x)
         return x
 

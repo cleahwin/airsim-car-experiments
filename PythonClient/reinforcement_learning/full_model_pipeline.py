@@ -12,7 +12,8 @@ import image_dataset
 import psutil
 
 importlib.reload(image_dataset)
-from image_dataset import NeighborhoodDataset
+# from image_dataset import NeighborhoodDataset
+from image_dataset import ImageSteeringAngleDataset, shuffle_real_sim_data, load_real_data, load_sim_data
 from model import NeighborhoodRealCNN, NeighborhoodResNet
 from utils_graphs import plot_two_datasets, plot_model_sim_output, plot_loss_curve
 import torchvision.transforms as transforms
@@ -27,13 +28,13 @@ from PIL import Image
 
 ROOT_DIR = "/homes/iws/cleahw/AirSim_Research/airsim-car-experiments/PythonClient/"
 # Specify ratio of real:sim. 1 - sim_ratio = real_ratio
-sim_ratio = 0
+sim_ratio = 1
 # Coastline or Neighborhood
 sim_environ = "Coastline"
 data_sim_dir = f"{ROOT_DIR}reinforcement_learning/AirSim/{sim_environ}/"
 data_real_dir = f"{ROOT_DIR}reinforcement_learning/balanced_data_split_new"
 batch_size = 8
-epochs = 21
+epochs = 100
 learning_rate = 0.001
 momentum = 0.9
 use_dino = False  
@@ -91,6 +92,11 @@ if sim_environ == "Coastline":
                     f"{data_sim_dir}2024-05-12-17-53-22",
                     f"{data_sim_dir}2024-05-12-17-54-21",
                     f"{data_sim_dir}2024-05-12-17-55-34",
+                    f"{data_sim_dir}2024-05-13-07-01-21",
+                    f"{data_sim_dir}2024-05-13-07-12-02",
+                    f"{data_sim_dir}2024-05-13-07-00-07",
+                    f"{data_sim_dir}2024-05-13-07-12-28",
+                    f"{data_sim_dir}2024-05-13-07-17-05",
                 ]
 
 else:
@@ -119,14 +125,14 @@ else:
 
 
 # Create instances of your datasets
-dataset = NeighborhoodDataset(data_sim_list)
+# dataset = NeighborhoodDataset(data_sim_list)
 
-# real_data = load_real_data(data_real_list)
-# sim_data = load_sim_data(data_sim_list)
-# shuffled_real_sim_data = shuffle_real_sim_data(real_data, sim_data, sim_ratio)
+real_data = load_real_data(data_real_list)
+sim_data = load_sim_data(data_sim_list)
+shuffled_real_sim_data = shuffle_real_sim_data(real_data, sim_data, sim_ratio)
 
 # # Splits datasets into train and test
-# dataset = ImageSteeringAngleDataset(shuffled_real_sim_data[0], shuffled_real_sim_data[1])
+dataset = ImageSteeringAngleDataset(shuffled_real_sim_data[0], shuffled_real_sim_data[1])
 length = dataset.__len__()
 train_length = int(0.8 * length)
 test_length = int(length - train_length)
@@ -153,7 +159,7 @@ if use_dino:
     cnn.head = nn.Linear(num_features, 1)  # Assuming output size is 8 for steering angle prediction
 else:
     # Use custom model
-    # cnn = NeighborhoodResNet()
+    #cnn = NeighborhoodResNet()
     cnn = NeighborhoodRealCNN()
 
 # Optimizer
