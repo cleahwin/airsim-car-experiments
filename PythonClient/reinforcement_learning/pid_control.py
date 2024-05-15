@@ -18,7 +18,7 @@ client.enableApiControl(True)
 
 print("API Control enabled: %s" % client.isApiControlEnabled())
 
-n_runs = 3
+n_runs = 10
 
 for run_num in range(n_runs):
     print(f"Starting run {run_num + 1}/{n_runs}")
@@ -27,9 +27,9 @@ for run_num in range(n_runs):
     recording_folder = os.path.join(r"C://Users//Cleah//Documents//AirSim", f"run_{run_num + 1}")
     print(recording_folder)
     client.startRecording()
+    start_pose = client.simGetVehiclePose()
 
-    # Set up random starting angle between -90 and 90 degrees
-    random_angle_deg = random.uniform(-1, 0.1)
+    random_angle_deg = random.uniform(-1, 0.15)
     random_angle_rad = math.radians(random_angle_deg)
     print(random_angle_deg)
 
@@ -56,7 +56,13 @@ for run_num in range(n_runs):
     posx_curr = []
 
     for i in range(0, 5000):
-
+        collision_info = client.simGetCollisionInfo()
+            
+        if collision_info.has_collided:
+            print("Collision detected!")
+            client.stopRecording()
+            print("Setting beginning pose!")
+            client.simSetVehiclePose(pose=start_pose, ignore_collision=True)
         print(f"In PID loop {i}")
 
         car_controls = airsim.CarControls()
@@ -171,3 +177,4 @@ for run_num in range(n_runs):
 
     client.stopRecording()
     print("Setting beginning pose!")
+    client.simSetVehiclePose(pose=start_pose, ignore_collision=True)

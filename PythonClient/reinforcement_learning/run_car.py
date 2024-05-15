@@ -9,6 +9,7 @@ import pandas as pd
 from model import NeighborhoodRealCNN
 from torchvision import transforms
 import torchvision.transforms.functional as F
+from torchvision.transforms import v2 as transforms_v2
 
 
 SIMULATOR = False
@@ -22,7 +23,7 @@ print("API Control enabled: %s" % client.isApiControlEnabled())
 
 # Use saved model
 cnn = NeighborhoodRealCNN()
-cnn.load_state_dict(torch.load(os.path.join(PATH,"1-2024-05-12.pth")))
+cnn.load_state_dict(torch.load(os.path.join(PATH,"1-2024-05-13.pth")))
 cnn.eval()
 data_path = "C:/Users/Cleah/Documents/AirSim/Neighborhood/2023-09-05-10-46-44"
 df = pd.read_csv(data_path + "/airsim_rec.txt", delimiter = "\t", header = 0)
@@ -52,12 +53,19 @@ for i in range(0, 10000):
 
 
     image = image.permute(0, 3, 1, 2)
-    image = image.float()
+    trans = transforms.Compose([
+        transforms_v2.ToImage(),
+        transforms_v2.ToDtype(torch.float32, scale=True),  # Normalize expects float input
+        transforms_v2.Resize(size=(140, 252))
+    ])
+    img_tensor = trans(image)
+    img_tensor = img_tensor.float()
 
-    outputs = cnn(image)[0][0]
+    outputs = cnn(img_tensor)
     print(outputs)
     car_controls.throttle = 0.5
-    car_controls.steering = math.radians(outputs.item())
+    # car_controls.steering = math.radians(outputs.item())
+    car_controls.steering = outputs.item()
     steering_angles.append(car_controls.steering)
     client.setCarControls(car_controls)
 
