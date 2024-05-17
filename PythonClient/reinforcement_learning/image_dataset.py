@@ -103,6 +103,7 @@ from torch.utils.data import Dataset, DataLoader, IterableDataset
 import torchvision.transforms as transforms
 from torchvision.transforms import v2 as transforms_v2
 from typing import List, Tuple
+from sklearn.model_selection import train_test_split
 
 # class NeighborhoodDataset(Dataset):
 #     def __init__(self, data_path_list: list):
@@ -340,20 +341,30 @@ def shuffle_real_sim_data(
     # Compute length of final data and how much to sample.
     final_data_len = min(len(real_data[1]), len(sim_data[1]))
     print(len(sim_data[1]), len(real_data[1]), final_data_len)
-    sim_data_len = int(sim_ratio * final_data_len)
-    real_data_len = int(final_data_len - sim_data_len)
     # NOTE: REMOVE BELOW LINE
     #sim_data_len = len(sim_data[1])
+    
+    # Ensure both datasets are same length
+    real_data = (real_data[0][:final_data_len], real_data[1][:final_data_len])
+    sim_data = (sim_data[0][:final_data_len], sim_data[1][:final_data_len])
 
-    #TODO: Get random subsamples
+    real_images_train, real_images_val, real_steering_train, real_steering_val = train_test_split(real_data[0], real_data[1], test_size=0.1)
+
+    # Split sim data into train and validation sets
+    sim_images_train, sim_images_val, sim_steering_train, sim_steering_val = train_test_split(sim_data[0], sim_data[1], test_size=0.1)
+   
+    sim_data_len = int(sim_ratio * len(sim_images_train))
+    real_data_len = int(final_data_len - sim_data_len)
+
     # Sample real and sim data.
-    sample_real_images = (real_data[0])[:real_data_len]
-    sample_real_steering_angle = (real_data[1])[:real_data_len]
+    sample_real_images = real_images_train[:real_data_len]
+    sample_real_steering_angle = real_steering_train[:real_data_len]
 
-    sample_sim_images = (sim_data[0])[:sim_data_len]
-    sample_sim_steering_angle = (sim_data[1])[:sim_data_len]
+    sample_sim_images = sim_images_train[:sim_data_len]
+    sample_sim_steering_angle = sim_steering_train[:sim_data_len]
 
     print(f"Sim Images Size = {len(sample_sim_images)}, Real Images Size = {len(sample_real_images)}")
+
 
     # Combine real and sim data.
     combined_images = torch.cat((sample_real_images, sample_sim_images), dim=0)
@@ -370,8 +381,24 @@ def shuffle_real_sim_data(
     # # Split the shuffled tensor back into two pairs of tensors
     # shuffled_image_pair, shuffled_steering_angle_pair = torch.split(shuffled_image_sa, len(sample_real_images), dim=0)
     
-    return (combined_images, combined_steering_angles)
+    return {"shuffled_train_images": combined_images,
+            "shuffled_train_steering": combined_steering_angles,
+            "real_val_images": real_images_val,
+            "real_val_steering": real_steering_val,
+            "sim_val_images": sim_images_val,
+            "sim_val_steering": sim_steering_val,
+            }
 
+def get_val_sets(real_data: Tuple[torch.Tensor, torch.Tensor],
+                sim_data: Tuple[torch.Tensor, torch.Tensor],):
+    """ Creates val sets for sim and real and returns them.
+
+    Args:
+        real_data: Tuple of input image tensor and output steering angle tensor for real data.
+        sim_data: Tuple of input image tensor and output steering angle tensor for sim data.
+    Return:
+        Final combined dataset.
+    """
 
 class ImageSteeringAngleDataset(Dataset):
     def __init__(self, images: torch.Tensor, steering_angles: torch.Tensor):
