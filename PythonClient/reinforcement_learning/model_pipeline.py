@@ -12,7 +12,7 @@ import image_dataset
 
 importlib.reload(image_dataset)
 from image_dataset import ImageSteeringAngleDataset, load_real_data, load_sim_data, shuffle_real_sim_data
-from model import NeighborhoodRealCNN
+from model import NeighborhoodRealCNN, NeighborhoodResNet
 from utils_graphs import plot_two_datasets, plot_model_sim_output, plot_loss_curve
 import torchvision.transforms as transforms
 from torch.utils.data import random_split
@@ -125,7 +125,8 @@ print("Finished Data Loading")
 
 
 # Loads model
-cnn = NeighborhoodRealCNN()
+# cnn = NeighborhoodRealCNN()
+cnn = NeighborhoodResNet()
 
 # Optimizer
 loss = nn.MSELoss()

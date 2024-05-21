@@ -26,7 +26,7 @@ from PIL import Image
 torch.autograd.set_detect_anomaly(True)
 
 
-NUM_TRIALS = 1
+NUM_TRIALS = 3
 sim_ratios = [0, 0.50, 0.75, 1.0]
 train_mses_for_sim_ratios_list = []
 sim_val_mses_for_sim_ratios_list = []
