@@ -125,8 +125,8 @@ print("Finished Data Loading")
 
 
 # Loads model
-# cnn = NeighborhoodRealCNN()
-cnn = NeighborhoodResNet()
+cnn = NeighborhoodRealCNN()
+# cnn = NeighborhoodResNet()
 
 # Optimizer
 loss = nn.MSELoss()

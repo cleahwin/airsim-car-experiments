@@ -26,8 +26,8 @@ from PIL import Image
 torch.autograd.set_detect_anomaly(True)
 
 
-NUM_TRIALS = 3
-sim_ratios = [0, 0.50, 0.75, 1.0]
+NUM_TRIALS = 1
+sim_ratios = [0, 0.50, 1.0]
 train_mses_for_sim_ratios_list = []
 sim_val_mses_for_sim_ratios_list = []
 real_val_mses_for_sim_ratios_list = []
@@ -153,9 +153,9 @@ for sim_ratio in sim_ratios:
         # test_length = int(length - train_length)
         # split = random_split(dataset, [train_length, test_length], generator=torch.Generator().manual_seed(42))
 
-        trainloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
-        sim_testloader = torch.utils.data.DataLoader(sim_testset, batch_size=batch_size, shuffle=True)
-        real_testloader = torch.utils.data.DataLoader(real_testset, batch_size=batch_size, shuffle=True)
+        trainloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+        sim_testloader = torch.utils.data.DataLoader(sim_testset, batch_size=batch_size, shuffle=False)
+        real_testloader = torch.utils.data.DataLoader(real_testset, batch_size=batch_size, shuffle=False)
 
 
         print(f"Training for {epochs} epochs,, batch_size={batch_size} {len(trainloader.dataset)} steps per epoch.")
@@ -291,7 +291,7 @@ real_averages = [np.mean(mses) for mses in real_val_mses_for_sim_ratios_list]
 real_std_devs = [np.std(mses) for mses in real_val_mses_for_sim_ratios_list]
 
 plt.clf()
-# plt.plot(sim_ratios, sim_val_mses_for_sim_ratios, label='Sim Validation')
+# plt.plot(sim_ratios, sim_val_mses_for_sim_ratios, labcel='Sim Validation')
 # plt.plot(sim_ratios, real_val_mses_for_sim_ratios, label='Real Validation')
 plt.errorbar(sim_ratios, sim_averages, yerr=sim_std_devs, fmt='-o', label='Sim Validation')
 plt.errorbar(sim_ratios, real_averages, yerr=real_std_devs, fmt='-o', label='Real Validation')
