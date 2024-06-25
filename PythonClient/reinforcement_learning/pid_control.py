@@ -29,12 +29,12 @@ for run_num in range(n_runs):
     client.startRecording()
     start_pose = client.simGetVehiclePose()
 
-    random_angle_deg = random.uniform(-1, 0.15)
+    random_angle_deg = random.uniform(-0.1, 0.01)
     random_angle_rad = math.radians(random_angle_deg)
     print(random_angle_deg)
 
     # Set initial pose for the car
-    initial_pose = airsim.Pose(airsim.Vector3r(0, 0 , 0), airsim.to_quaternion(0, 0, random_angle_deg))
+    initial_pose = airsim.Pose(airsim.Vector3r(0, 0 , -1), airsim.to_quaternion(0, 0, random_angle_rad))
     client.simSetVehiclePose(pose=initial_pose, ignore_collision=True)
 
     # Debugging output
