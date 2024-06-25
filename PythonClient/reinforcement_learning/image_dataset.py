@@ -1,6 +1,6 @@
 ################################################
 import glob
-import cv2
+
 import numpy as np
 import torch
 import pandas as pd
@@ -165,7 +165,7 @@ def load_sim_data(
 
     # Convert list of image tensors to a tensor
     images_tensor = torch.stack(images, dim=0)
-    # print(f"Images tensor shape data load {images_tensor.shape}")
+    print(f"Images tensor shape data load {images_tensor.shape}")
     return (images_tensor, steering_angles_tensor)
 
 
@@ -184,7 +184,7 @@ def load_real_data(data_path_list: List[str]) -> Tuple[torch.Tensor, torch.Tenso
     images_list = []
     path = data_path_list[0]
     # NOT LOADING ALL DATA
-    for i in range(1, 12):
+    for i in range(1, 21):
         print(i)
         if i == 9:
             continue
@@ -249,7 +249,7 @@ def shuffle_real_sim_data(
     final_data_len = min(len(real_data[1]), len(sim_data[1]))
     print(len(sim_data[1]), len(real_data[1]), final_data_len)
     # NOTE: REMOVE BELOW LINE
-    #sim_data_len = len(sim_data[1])
+    #final_data_len = len(real_data[1])
     
     # Ensure both datasets are same length
     real_data = (real_data[0][:final_data_len], real_data[1][:final_data_len])
