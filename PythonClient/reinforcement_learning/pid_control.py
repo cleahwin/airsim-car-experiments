@@ -11,6 +11,7 @@ import os
 # data set of riding normally through neighborhood
 data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-18-17-22-22/airsim_rec.txt"
 df = pd.read_csv(data_path, delimiter="\t", header=0)
+df_first_100 = df.head(100)
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
@@ -25,7 +26,7 @@ for run_num in range(n_runs):
     print(f"Starting run {run_num + 1}/{n_runs}")
 
     # Randomly select a starting position from the data
-    random_row = df.sample().iloc[0]
+    random_row = df_first_100.sample().iloc[0]
     random_pos = airsim.Vector3r(random_row["POS_X"], random_row["POS_Y"], random_row["POS_Z"])
     #initial_pose = airsim.Pose(random_pos, random_orientation)
 
