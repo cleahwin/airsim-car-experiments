@@ -10,6 +10,7 @@ import os
 
 # data set of riding normally through neighborhood
 data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-18-17-22-22/airsim_rec.txt"
+df = pd.read_csv(data_path, delimiter="\t", header=0)
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
@@ -18,10 +19,15 @@ client.enableApiControl(True)
 
 print("API Control enabled: %s" % client.isApiControlEnabled())
 
-n_runs = 10
+n_runs = 1000
 
 for run_num in range(n_runs):
     print(f"Starting run {run_num + 1}/{n_runs}")
+
+    # Randomly select a starting position from the data
+    random_row = df.sample().iloc[0]
+    random_pos = airsim.Vector3r(random_row["POS_X"], random_row["POS_Y"], random_row["POS_Z"])
+    #initial_pose = airsim.Pose(random_pos, random_orientation)
 
     # Start AirSim recording
     recording_folder = os.path.join(r"C://Users//Cleah//Documents//AirSim", f"run_{run_num + 1}")
@@ -34,7 +40,8 @@ for run_num in range(n_runs):
     print(random_angle_deg)
 
     # Set initial pose for the car
-    initial_pose = airsim.Pose(airsim.Vector3r(0, 0 , -1), airsim.to_quaternion(0, 0, random_angle_rad))
+    # initial_pose = airsim.Pose(airsim.Vector3r(0, 0 , -1), airsim.to_quaternion(0, 0, random_angle_rad))
+    initial_pose = airsim.Pose(random_pos, airsim.to_quaternion(0, 0, random_angle_rad))
     client.simSetVehiclePose(pose=initial_pose, ignore_collision=True)
 
     # Debugging output
@@ -55,7 +62,7 @@ for run_num in range(n_runs):
     posy_curr = []
     posx_curr = []
 
-    for i in range(0, 5000):
+    for i in range(0, 2500):
         collision_info = client.simGetCollisionInfo()
             
         if collision_info.has_collided:
