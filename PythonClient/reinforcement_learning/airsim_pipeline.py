@@ -189,7 +189,7 @@ cnn.to(device)  # Move the model to the appropriate device
 cnn.train()
 
 # Optimizer and loss function
-loss_fn = nn.MSELoss()
+loss_fn = nn.MSELoss(reduction = 'mean')
 optimizer = optim.SGD(cnn.parameters(), lr=learning_rate, momentum=momentum)
 
 # Training loop
@@ -203,6 +203,12 @@ for epoch in range(epochs):
     for i, data in enumerate(trainloader, 0):
         images, steering_angles = data
         images, steering_angles = images.float().to(device), steering_angles.float().to(device)  # Move data to device
+
+        # Check for NaNs in data
+        if torch.isnan(images).any() or torch.isnan(steering_angles).any():
+            print("NaN values found in input data. Skipping this batch.")
+            continue
+
         optimizer.zero_grad()
         outputs = cnn(images)
         loss = loss_fn(outputs, steering_angles)
