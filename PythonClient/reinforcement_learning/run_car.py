@@ -13,7 +13,7 @@ from torchvision.transforms import v2 as transforms_v2
 
 
 SIMULATOR = False
-PATH = r"C:\Users\Cleah\Documents\Projects\University Research\Robot Learning Lab\Simulator\airsim-car-experiments\PythonClient\saved_models"
+PATH = r"C:\Users\Cleah\Documents\Projects\University Research\Robot Learning Lab\Simulator\airsim-car-experiments\PythonClient\reinforcement_learning\saved_models"
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
@@ -23,9 +23,9 @@ print("API Control enabled: %s" % client.isApiControlEnabled())
 
 # Use saved model
 cnn = NeighborhoodRealCNN()
-cnn.load_state_dict(torch.load(os.path.join(PATH,"1-2024-05-16.pth")))
+cnn.load_state_dict(torch.load(os.path.join(PATH,"1.0-2024-06-27.pth")))
 cnn.eval()
-data_path = "C:/Users/Cleah/Documents/AirSim/Neighborhood/2023-09-05-10-46-44"
+data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-18-17-22-22"
 df = pd.read_csv(data_path + "/airsim_rec.txt", delimiter = "\t", header = 0)
 
 car_controls = airsim.CarControls()

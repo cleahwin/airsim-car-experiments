@@ -11,7 +11,7 @@ import os
 # data set of riding normally through neighborhood
 data_path = "C:/Users/Cleah/Documents/AirSim/Coastline/2024-04-18-17-22-22/airsim_rec.txt"
 df = pd.read_csv(data_path, delimiter="\t", header=0)
-df_first_100 = df.head(100)
+df_first_100 = df.head(25)
 
 # connect to the AirSim simulator
 client = airsim.CarClient()
@@ -63,7 +63,7 @@ for run_num in range(n_runs):
     posy_curr = []
     posx_curr = []
 
-    for i in range(0, 2500):
+    for i in range(0, 1500):
         collision_info = client.simGetCollisionInfo()
             
         if collision_info.has_collided:
