@@ -249,7 +249,7 @@ def shuffle_real_sim_data(
     final_data_len = min(len(real_data[1]), len(sim_data[1]))
     print(len(sim_data[1]), len(real_data[1]), final_data_len)
     # NOTE: REMOVE BELOW LINE
-    #final_data_len = len(real_data[1])
+#    final_data_len = len(real_data[1])
     
     # Ensure both datasets are same length
     real_data = (real_data[0][:final_data_len], real_data[1][:final_data_len])
